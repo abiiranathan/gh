@@ -186,16 +186,10 @@ func (gdb *gormDB) CreateInBatches(values []any, batchSize int) error {
 	return gdb.db.CreateInBatches(values, batchSize).Error
 }
 
-// OrderBy orders the results by a column.
-// If a column is empty, it does nothing.
-func (gdb *gormDB) OrderBy(column string, asc bool) *gormDB {
-	if column != "" {
-		if asc {
-			gdb.db = gdb.db.Order(column + " ASC")
-		} else {
-			gdb.db = gdb.db.Order(column + " DESC")
-		}
-	}
+// Order orders the results by a column.
+// e.g Order("created_at DESC")
+func (gdb *gormDB) Order(value string) *gormDB {
+	gdb.db = gdb.db.Order(value)
 	return gdb
 }
 
@@ -252,6 +246,12 @@ func (gdb *gormDB) Preload(options ...PreloadOptions) *gormDB {
 	for _, option := range options {
 		gdb.db = gdb.db.Preload(option.Query, option.Args...)
 	}
+	return gdb
+}
+
+// Joins joins the associations.
+func (gdb *gormDB) Joins(query string, args ...any) *gormDB {
+	gdb.db = gdb.db.Joins(query, args...)
 	return gdb
 }
 
