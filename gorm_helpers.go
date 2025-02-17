@@ -2,6 +2,7 @@
 package gh
 
 import (
+	"context"
 	"math"
 
 	"gorm.io/gorm"
@@ -22,6 +23,29 @@ func WrapDB(db *gorm.DB) *gormDB {
 // DB returns the underlying *gorm.DB object.
 func (gdb *gormDB) DB() *gorm.DB {
 	return gdb.db
+}
+
+func (gdb *gormDB) WithContext(ctx context.Context) *gorm.DB {
+	return gdb.db.WithContext(ctx)
+}
+
+func (gdb *gormDB) Transaction(fn func(*gormDB) error) error {
+	return gdb.db.Transaction(func(tx *gorm.DB) error {
+		return fn(&gormDB{db: tx})
+	})
+}
+
+func (gdb *gormDB) BeforeQuery(callback func(*gorm.DB)) error {
+	return gdb.db.Callback().Query().Before("gorm:query").Register("before_query", callback)
+}
+
+func (gdb *gormDB) AfterQuery(callback func(*gorm.DB)) error {
+	return gdb.db.Callback().Query().After("gorm:query").Register("after_query", callback)
+}
+
+func (gdb *gormDB) JSONFilter(column, key string, value interface{}) *gormDB {
+	gdb.db = gdb.db.Where(column+"->>? = ?", key, value)
+	return gdb
 }
 
 // DateRange applies date range filter on a date column
@@ -159,16 +183,18 @@ func (gdb *gormDB) PreloadWithConditions(query string, conditions map[string]int
 }
 
 // Sum calculates the sum of a column. It returns the sum as an integer.
-func (gdb *gormDB) Sum(column string) (int64, error) {
+// Model is the pointer to struct.
+func (gdb *gormDB) Sum(model any, column string) (int64, error) {
 	var sum int64
-	err := gdb.db.Model(&struct{}{}).Select("SUM(" + column + ")").Scan(&sum).Error
+	err := gdb.db.Model(model).Select("SUM(" + column + ")").Scan(&sum).Error
 	return sum, err
 }
 
 // Avg calculates the average of a column. It returns the average as a float64.
-func (gdb *gormDB) Avg(column string) (float64, error) {
+// Model is the pointer to struct.
+func (gdb *gormDB) Avg(model any, column string) (float64, error) {
 	var avg float64
-	err := gdb.db.Model(&struct{}{}).Select("AVG(" + column + ")").Scan(&avg).Error
+	err := gdb.db.Model(model).Select("AVG(" + column + ")").Scan(&avg).Error
 	return avg, err
 }
 

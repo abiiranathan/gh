@@ -27,17 +27,17 @@ var (
 	ErrMissingRequiredField = errors.New("missing required DSN field")
 )
 
-// ConnectionPoolConfig allows customization of database connection pool settings
-type ConnectionPoolConfig struct {
+// PoolConfig allows customization of database connection pool settings
+type PoolConfig struct {
 	MaxIdleConns    int
 	MaxOpenConns    int
 	ConnMaxLifetime time.Duration
 	ConnMaxIdleTime time.Duration
 }
 
-// DefaultConnectionPoolConfig provides sensible default connection pool settings
-func DefaultConnectionPoolConfig() ConnectionPoolConfig {
-	return ConnectionPoolConfig{
+// DefaultPoolConfig provides sensible default connection pool settings
+func DefaultPoolConfig() PoolConfig {
+	return PoolConfig{
 		MaxIdleConns:    10,
 		MaxOpenConns:    100,
 		ConnMaxLifetime: time.Hour,
@@ -134,7 +134,7 @@ func (config *PgConfig) ParseDSN(dsn string) error {
 // logLevel is the log level for the logger. The default slow threshold for slow queries is 1 second.
 // poolConfig is the connection pool configuration. If nil, default values are used.
 // It returns a gorm.DB instance and an error if any.
-func PgConnect(dsn string, logOutput io.Writer, logLevel logger.LogLevel, poolConfig *ConnectionPoolConfig) (*gorm.DB, error) {
+func PgConnect(dsn string, logOutput io.Writer, logLevel logger.LogLevel, poolConfig *PoolConfig) (*gorm.DB, error) {
 	cfg := &PgConfig{}
 	err := cfg.ParseDSN(dsn)
 	if err != nil {
@@ -143,7 +143,7 @@ func PgConnect(dsn string, logOutput io.Writer, logLevel logger.LogLevel, poolCo
 
 	// Use default pool config if not provided
 	if poolConfig == nil {
-		defaultConfig := DefaultConnectionPoolConfig()
+		defaultConfig := DefaultPoolConfig()
 		poolConfig = &defaultConfig
 	}
 
@@ -214,10 +214,10 @@ func PgClose(db *gorm.DB) error {
 
 // PgConnectWithConn establishes a connection to the database using the provided connection.
 // It returns a gorm.DB instance and an error if any.
-func PgConnectWithConn(conn *sql.DB, logOutput io.Writer, logLevel logger.LogLevel, poolConfig *ConnectionPoolConfig) (*gorm.DB, error) {
+func PgConnectWithConn(conn *sql.DB, logOutput io.Writer, logLevel logger.LogLevel, poolConfig *PoolConfig) (*gorm.DB, error) {
 	// Use default pool config if not provided
 	if poolConfig == nil {
-		defaultConfig := DefaultConnectionPoolConfig()
+		defaultConfig := DefaultPoolConfig()
 		poolConfig = &defaultConfig
 	}
 
