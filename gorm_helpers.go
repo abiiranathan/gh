@@ -25,8 +25,9 @@ func (gdb *gormDB) DB() *gorm.DB {
 	return gdb.db
 }
 
-func (gdb *gormDB) WithContext(ctx context.Context) *gorm.DB {
-	return gdb.db.WithContext(ctx)
+func (gdb *gormDB) WithContext(ctx context.Context) *gormDB {
+	gdb.db = gdb.db.WithContext(ctx)
+	return gdb
 }
 
 func (gdb *gormDB) Transaction(fn func(*gormDB) error) error {
