@@ -123,6 +123,11 @@ func (gdb *GormDB) Eq(column string, value interface{}) *GormDB {
 	return gdb
 }
 
+func (gdb *GormDB) Where(query string, conds ...any) *GormDB {
+	gdb.db = gdb.db.Where(query, conds...)
+	return gdb
+}
+
 // NotEq applies not equal filter on a column.
 // If a value is empty, it does nothing.
 func (gdb *GormDB) NotEq(column string, value any) *GormDB {

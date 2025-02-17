@@ -43,15 +43,23 @@ func NewQueryBuilder(baseQuery string) *QueryBuilder {
 // Where adds a where condition. Takes care of appending AND if more that one call
 // has been made.
 // Note that if value == "", the where condition is ignored.
-func (qb *QueryBuilder) Where(condition string, value interface{}) *QueryBuilder {
-	if value != "" {
+func (qb *QueryBuilder) Where(condition string, value ...interface{}) *QueryBuilder {
+	if len(value) > 0 {
+		// If its an empty string, do nothing.
+		if len(value) == 1 {
+			if str, ok := value[0].(string); ok && str == "" {
+				return qb
+			}
+		}
+
 		if len(qb.args) > 0 {
 			qb.query += " AND " + condition
 		} else {
 			qb.query += " WHERE " + condition
 		}
-		qb.args = append(qb.args, value)
+		qb.args = append(qb.args, value...)
 	}
+
 	return qb
 }
 
